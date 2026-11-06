@@ -1,0 +1,100 @@
+{
+ "slug": "money-maker",
+ "name": "Money Maker",
+ "kind": "web",
+ "order": 16,
+ "title": "Content lockers that pay publishers per completed offer, with fraud filtering at the door",
+ "category": "Affiliate monetisation · Fraud prevention · Laravel",
+ "year": "2024–2025",
+ "client": "Money Maker · content-locking affiliate network",
+ "role": "Developer: geo- and device-based restriction rules and locker access control",
+ "team": "Team of 7",
+ "summary": "Three Laravel apps (admin, affiliate portal and marketing site) where publishers wrap content, files or links in a locker that unlocks once a visitor completes advertiser offers, filtered by device, country and VPN checks.",
+ "metrics": [
+  {
+   "value": "3",
+   "label": "Laravel applications: admin, affiliate, landing"
+  },
+  {
+   "value": "4",
+   "label": "locker types: content, file, captcha, link"
+  },
+  {
+   "value": "14",
+   "label": "desktop and mobile locker templates"
+  },
+  {
+   "value": "5",
+   "label": "admin-configurable fraud toggles"
+  }
+ ],
+ "problem": [
+  "Publishers want to earn from downloads and gated content by asking visitors to complete advertiser offers, and each unlock has to be tied to a confirmed conversion from the affiliate network, not just a click.",
+  "Networks pay nothing for fraudulent traffic, so VPNs, emulators and blocked countries have to be filtered before offers are shown, and lockers have to work as embeds on publishers' own domains."
+ ],
+ "constraints": [
+  {
+   "label": "Third-party conversions",
+   "text": "Unlocks depend on the network's click and conversion APIs, so conversions are polled and checked against each locker's goal."
+  },
+  {
+   "label": "Cross-domain embeds",
+   "text": "Lockers load through a generated script and iframe on publisher domains, which brings CORS, identity and IP-detection problems."
+  },
+  {
+   "label": "Device fragmentation",
+   "text": "Offers are filtered by device, OS, browser and country, and the locker UI has to render on iOS Safari and many other browsers."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Admin templates",
+   "Affiliate lockers",
+   "JS embed",
+   "Fraud checks",
+   "Offers",
+   "Conversion unlock"
+  ],
+  "caption": "Admins design templates and fraud rules, affiliates embed lockers through a generated script, visitors pass fraud checks before seeing device-matched offers, and a status endpoint unlocks once confirmed conversions reach the goal."
+ },
+ "sections": [
+  {
+   "heading": "Unlocking on confirmed conversions, once",
+   "paras": [
+    "A status endpoint sums the goal value of a visitor's confirmed conversions for a locker and returns the unlock action (remove the locker or redirect) only when the total reaches what the locker requires.",
+    "Contributing conversions are stamped when they unlock, so they can't unlock again, offers refresh every 30 minutes and completed offers are hidden from the same visitor."
+   ]
+  },
+  {
+   "heading": "Fraud prevention the admin controls",
+   "paras": [
+    "A single settings row holds toggles for VPN, emulator, rooted device, Termux and country blocking. Middleware applies user-agent and device heuristics, an IP-reputation API flags VPNs and proxies, and a geolocation lookup enforces the blocked-country list with a configurable message."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Lockers glitching on iPhone",
+   "text": "Locker previews and offer images glitched on iOS. A series of fixes resolved previews across devices while keeping adblock and noscript fallbacks working."
+  },
+  {
+   "title": "Cross-origin embeds losing the visitor",
+   "text": "On other domains the visitor identifier and IP lookup failed; a CORS setup, an IP endpoint and a corrected identifier key fixed cross-site lockers."
+  }
+ ],
+ "outcome": [
+  "The platform ships an admin portal for templates, domains, advertisers, affiliates and fraud tools, and an affiliate portal for building, previewing and embedding lockers with per-locker earnings. Fraud rules change from the admin without a redeploy."
+ ],
+ "stack": [
+  "Laravel 10",
+  "Livewire 3",
+  "Jetstream",
+  "Sanctum",
+  "MySQL",
+  "Tailwind",
+  "DeviceDetector",
+  "Geolocation",
+  "Laravel Scheduler"
+ ],
+ "image": "/work/money-maker.jpg"
+}

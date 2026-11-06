@@ -1,0 +1,112 @@
+{
+ "slug": "rollcall",
+ "name": "RollCall AI",
+ "kind": "ai",
+ "order": 10,
+ "image": "/work/rollcall.jpg",
+ "title": "Attendance that checks people in when the camera recognises them",
+ "category": "Face recognition · Attendance · Workforce",
+ "year": "2026",
+ "client": "Personal project",
+ "role": "Solo build",
+ "summary": "Checks staff in and out when the entrance camera recognises them, requiring 3 matching frames out of 5, and keeps a daily register, monthly reports and a review queue for unknown faces.",
+ "metrics": [
+  {
+   "value": "3 of 5",
+   "label": "frames must agree before a check-in is written"
+  },
+  {
+   "value": "0.40",
+   "label": "cosine similarity needed to name a face"
+  },
+  {
+   "value": "4",
+   "label": "frames an unknown face must appear in before it's queued"
+  },
+  {
+   "value": "512",
+   "label": "numbers in each ArcFace face signature"
+  }
+ ],
+ "problem": [
+  "Paper registers and swipe cards are slow and easy to cheat, and someone still has to work out lateness, absences and hours. The project's original command-line version needed TensorFlow, a MySQL server and folders missing from the repo, so it couldn't run.",
+  "A camera system has its own risk: one bad frame can check in the wrong person, and the record affects someone's pay."
+ ],
+ "constraints": [
+  {
+   "label": "CPU only",
+   "text": "Everything runs on ONNX Runtime on the CPU, with no TensorFlow, PyTorch or GPU."
+  },
+  {
+   "label": "Small faces",
+   "text": "Entrance faces are often small, so faces under 40 px are ignored and video frames are kept at full HD for alignment."
+  },
+  {
+   "label": "Unknown faces",
+   "text": "Visitors have to be captured for review without creating a new entry on every frame."
+  },
+  {
+   "label": "No liveness check",
+   "text": "There's no anti-spoofing model, so the camera should be somewhere people can see it."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Webcam / video",
+   "SCRFD + landmarks",
+   "Align to 112 px",
+   "ArcFace R50",
+   "3-of-5 vote",
+   "Register + rules"
+  ],
+  "caption": "SCRFD finds faces and 5 landmarks; each face is aligned, embedded by ArcFace and matched by cosine similarity, and a person is checked in only after winning the frame vote."
+ },
+ "sections": [
+  {
+   "heading": "Never trusting a single frame",
+   "paras": [
+    "Each camera session keeps a sliding window of who was recognised in its last 5 frames, and a person is confirmed only once they appear in 3. Until then the UI shows them as 'recognising' with a vote count. Group photos skip the vote, because everyone in them should be marked at once.",
+    "Once someone is recorded the result is cached for 60 seconds. In Automatic mode the first sighting checks in and a sighting 60+ minutes later checks out; a second check-out within 5 minutes just moves the time."
+   ]
+  },
+  {
+   "heading": "Running InsightFace models without the InsightFace package",
+   "paras": [
+    "SCRFD-10G and ArcFace R50 run directly in ONNX Runtime. I letterbox to 640 px, decode boxes and landmarks from SCRFD's three strides with my own anchors and NMS, and warp each face onto ArcFace's 5-point template before embedding.",
+    "Registered faces live in an in-memory matrix that reloads only when the database changes, so matching is one matrix product. Registration rejects photos without exactly one clear face, faces that match someone else, and photos that don't resemble the person's other photos."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Unknown visitors creating duplicate entries",
+   "text": "A stranger walking past produces dozens of unmatched faces. Faces at least 0.45 similar are tracked as one visitor, logged only after 4 good frames, and the same visitor within 12 hours adds a sighting instead of a new entry."
+  },
+  {
+   "title": "Choosing a threshold for pay-affecting data",
+   "text": "On 299 labelled face pairs, a threshold of 0.40 matched every same-person pair and no different-person pair; lower values traded more names for more mistakes."
+  },
+  {
+   "title": "Entrance video too small to align",
+   "text": "Downscaling footage destroyed small faces, so video is sampled at 4 fps but kept at up to 1920 px, and alignment crops come from the full-resolution frame."
+  }
+ ],
+ "outcome": [
+  "Staff are checked in or out from a kiosk webcam, a group photo or an entrance video. The daily register shows on time, late, absent, leave and 'not yet', with snapshots and hours worked.",
+  "Managers get a 30-day chart, a monthly grid, CSV export, manual corrections, work-hour rules and a review queue where assigning an unknown face to someone also teaches the system that face."
+ ],
+ "stack": [
+  "Python",
+  "Flask",
+  "SCRFD-10G",
+  "ArcFace R50",
+  "ONNX Runtime",
+  "OpenCV",
+  "NumPy",
+  "SQLite",
+  "pytest",
+  "React",
+  "TypeScript",
+  "Recharts"
+ ]
+}

@@ -1,0 +1,78 @@
+{
+ "slug": "taif-shipping",
+ "name": "Taif Shipping",
+ "kind": "web",
+ "order": 7,
+ "title": "A logistics ERP that replaced management's spreadsheets",
+ "category": "Logistics ERP · HRM · Finance",
+ "year": "",
+ "client": "Taif Shipping · logistics company",
+ "role": "Full-stack developer: HRM module, financial module and operations dashboards",
+ "summary": "A custom ERP for a shipping and logistics company: an HRM module with multi-role access, a financial module covering invoicing, payroll and expenses, and live dashboards that replaced manual spreadsheet reporting.",
+ "metrics": [
+  {
+   "value": "3",
+   "label": "core modules: HRM, finance, dashboards"
+  },
+  {
+   "value": "3",
+   "label": "finance areas: invoicing, payroll, expenses"
+  },
+  {
+   "value": "Live",
+   "label": "operational dashboards for management"
+  }
+ ],
+ "problem": [
+  "Management at a logistics company tracked staff, payroll, invoices and expenses in spreadsheets. Every report meant someone compiling numbers by hand, and the figures were out of date by the time anyone read them.",
+  "The company needed one system where HR, finance and operations share the same data, with each role seeing only its own part."
+ ],
+ "constraints": [
+  {
+   "label": "Multi-role access",
+   "text": "HR, finance, operations and management each see and change only what their role allows."
+  },
+  {
+   "label": "Numbers that agree",
+   "text": "Payroll, invoices and expenses feed the same financial records, so totals have to match everywhere they appear."
+  },
+  {
+   "label": "Replacing a habit",
+   "text": "The dashboards had to answer the questions the spreadsheets answered, or management would keep using the spreadsheets."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Roles & access",
+   "HRM",
+   "Payroll",
+   "Invoices & expenses",
+   "Live dashboards"
+  ],
+  "caption": "Role-based access sits in front of HRM and finance; payroll, invoicing and expenses write to shared records that the management dashboards read directly."
+ },
+ "sections": [
+  {
+   "heading": "HRM with role-based access",
+   "paras": [
+    "Employee records, roles and permissions live in the HRM module, and every screen checks the signed-in user's role before showing or changing data."
+   ]
+  },
+  {
+   "heading": "One financial module",
+   "paras": [
+    "Invoicing, payroll and expense tracking share one set of financial records, so the dashboards show the same numbers finance works with instead of a separate export."
+   ]
+  }
+ ],
+ "challenges": [],
+ "outcome": [
+  "Management reads operational and financial figures from live dashboards instead of compiled spreadsheets."
+ ],
+ "stack": [
+  "Laravel",
+  "Vue.js",
+  "MySQL",
+  "Role-based access"
+ ]
+}

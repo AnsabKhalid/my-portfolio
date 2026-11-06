@@ -1,0 +1,68 @@
+{
+ "slug": "athlone-windows",
+ "name": "Athlone Windows",
+ "kind": "site",
+ "order": 20,
+ "image": "/work/athlone-windows.jpg",
+ "link": "https://athlonewindows.ie/",
+ "title": "A product showcase and quote-request site for a windows and doors installer",
+ "category": "WordPress · Lead generation · Elementor",
+ "year": "",
+ "client": "Athlone Windows · Athlone, Ireland",
+ "role": "WordPress developer",
+ "summary": "The WordPress/Elementor site for a family-run windows, doors and glass installer, showing its products and process and collecting quote and call-back requests.",
+ "metrics": [
+  {
+   "value": "7",
+   "label": "main navigation pages"
+  },
+  {
+   "value": "3",
+   "label": "enquiry types in the quote form"
+  },
+  {
+   "value": "4",
+   "label": "process steps shown, quote to installation"
+  }
+ ],
+ "problem": [
+  "A local installer that mostly won work through referrals needed a site that shows its windows and doors, explains how a job runs, and turns visitors into quote requests or call-backs."
+ ],
+ "constraints": [
+  {
+   "label": "Lead capture first",
+   "text": "'Get a Quote' and 'Request a Call Back' appear across the site, and a short form sorts each enquiry by type."
+  },
+  {
+   "label": "Owner-editable",
+   "text": "Built on Elementor so the business can update products and copy itself."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Product pages",
+   "Process & reviews",
+   "Quote form",
+   "Enquiry type",
+   "Sales follow-up"
+  ],
+  "caption": "Visitors browse windows and doors, see the four-step process and reviews, and submit a short form that reaches the sales team."
+ },
+ "sections": [
+  {
+   "heading": "Site and quote flow",
+   "paras": [
+    "Home, About, Windows, Doors, Services, Useful Links and an FAQ on replacements. The homepage features entry doors and picture, sliding and round windows, sets out the four-step process and shows customer reviews. The quote form asks for name, phone, email and enquiry type."
+   ]
+  }
+ ],
+ "challenges": [],
+ "outcome": [
+  "The site is live, and quote and call-back requests reach the sales team already sorted by enquiry type."
+ ],
+ "stack": [
+  "WordPress",
+  "Elementor",
+  "Elementor Forms"
+ ]
+}

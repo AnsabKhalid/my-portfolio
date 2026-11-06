@@ -1,0 +1,108 @@
+{
+ "slug": "shifterp",
+ "name": "ShiftERP",
+ "kind": "web",
+ "order": 2,
+ "image": "/work/shift-erp.jpg",
+ "link": "https://shifterp.com/",
+ "title": "A multi-tenant SaaS ERP where every company runs on its own database",
+ "category": "SaaS ERP · Reporting · Multi-tenancy",
+ "year": "2025",
+ "client": "ShiftERP · SaaS ERP for co-packers and contract manufacturers",
+ "role": "Full-stack developer: database-per-tenant architecture, super-admin tenant provisioning, subscription-gated modules, the report export layer and AWS deployment",
+ "team": "Team of 10+ contributors",
+ "summary": "ShiftERP is a SaaS ERP for co-packers and supply-chain teams. Each company runs on its own isolated database, provisioned by a super admin and gated by its subscription, to manage customers, inventory, scheduling, accounting, supply chain and reporting.",
+ "metrics": [
+  {
+   "value": "6",
+   "label": "subscription-gated modules"
+  },
+  {
+   "value": "105",
+   "label": "tenant-database migrations"
+  },
+  {
+   "value": "28",
+   "label": "report types in the report generator"
+  },
+  {
+   "value": "3",
+   "label": "output formats per report: screen, Excel, PDF"
+  }
+ ],
+ "problem": [
+  "Operations staff run reports such as inventory by lot, picking fees, cold-storage revenue, production by line and payroll export, then hand them to accounting or customers.",
+  "The report generator returned rows with nested objects and arrays. Exported as-is, those cells came out as raw JSON or blanks, and default column widths made long description columns unreadable."
+ ],
+ "constraints": [
+  {
+   "label": "Many shapes",
+   "text": "Each of the 28 report types returns its own headers and rows, so export logic couldn't assume a fixed schema."
+  },
+  {
+   "label": "Tenant-scoped",
+   "text": "Reports run inside the tenant resolved from the logged-in user, against that company's own database."
+  },
+  {
+   "label": "Existing controller",
+   "text": "The work had to fit an established controller without changing what the report endpoints return."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Super admin",
+   "Tenant database",
+   "Subscription gate",
+   "Modules",
+   "Reports",
+   "Excel / PDF"
+  ],
+  "caption": "A super admin provisions a company and its database; its subscription opens modules, and every report can leave the app as a styled spreadsheet or a print-ready PDF."
+ },
+ "sections": [
+  {
+   "heading": "Database per tenant",
+   "paras": [
+    "Each company gets its own database through stancl/tenancy. Central migrations hold provisioning, billing and subscriptions; 105 tenant migrations and 74 tenant models hold the company's operational data. Middleware initialises the tenant from the signed-in user, so every query runs against that company's database and nothing else.",
+    "A super admin provisions new companies, creating the tenant database and its first admin, and the subscription decides which of the 6 modules a company can open: Customer Management, Inventory, Smart Scheduling, Accounting, Supply Chain and Reporting. The platform runs on AWS for every live tenant."
+   ]
+  },
+  {
+   "heading": "Export formatting that survives any report shape",
+   "paras": [
+    "The Excel export picks column widths from the heading (wide for descriptions and product lists, narrower for names, ids, dates and amounts), centres and wraps every cell and styles a taller bold header row.",
+    "A recursive formatter decodes JSON strings, collapses id/name pairs to the name, joins scalar lists and drops internal ids. The PDF export reuses the same formatter and renders landscape A4 with dompdf."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Nested data in flat exports",
+   "text": "Rows with nested arrays and objects rendered as raw data or empty cells. Recursive formatting now turns them into readable text and drops internal fields."
+  },
+  {
+   "title": "Unreadable default spreadsheets",
+   "text": "Exports used uniform narrow columns with no wrapping. Heading-based widths, wrapping, alignment and a styled header made long descriptions readable."
+  },
+  {
+   "title": "No print-ready format",
+   "text": "Reports could only be viewed in the app or exported to a spreadsheet. A dompdf template now gives every report type a landscape PDF through the same formatting path."
+  }
+ ],
+ "outcome": [
+  "Companies are provisioned with their own database from the super-admin panel, open the modules their plan includes, and export all 28 report types as styled Excel or landscape PDF through one export path."
+ ],
+ "stack": [
+  "PHP 8.2",
+  "Laravel 12",
+  "React",
+  "stancl/tenancy",
+  "Maatwebsite Excel",
+  "PhpSpreadsheet",
+  "dompdf",
+  "Elasticsearch",
+  "MySQL",
+  "AWS"
+ ],
+ "featured": true
+}

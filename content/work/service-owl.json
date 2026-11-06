@@ -1,0 +1,116 @@
+{
+ "slug": "service-owl",
+ "name": "Service Owl",
+ "kind": "web",
+ "order": 3,
+ "featured": true,
+ "image": "/work/service-owl.jpg",
+ "link": "https://www.serviceowl.ca/",
+ "title": "One booking, payroll and payments platform shared by several nanny agencies",
+ "category": "Marketplace SaaS · Payments · Scheduling",
+ "year": "2023–2025",
+ "client": "Service Owl · Canadian nanny and childcare agencies",
+ "role": "Full-stack developer on the Laravel + Nova API and Nuxt client: Stripe Connect payment flows, timezone/DST handling, scheduler performance, agency rules and CI/CD",
+ "team": "Team of 9",
+ "summary": "Service Owl lets several nanny agencies run onboarding, shift booking, clock-in/out and invoicing on one codebase. I built most of its payment layer, which splits each charge between agency and nanny through Stripe Connect.",
+ "metrics": [
+  {
+   "value": "327",
+   "label": "commits I authored (198 backend, 129 frontend)"
+  },
+  {
+   "value": "57",
+   "label": "Laravel Nova admin resources in the platform"
+  },
+  {
+   "value": "9",
+   "label": "custom Nova components (reports, scheduling, Stripe, interviews)"
+  },
+  {
+   "value": "4",
+   "label": "agency brands, each with its own rules"
+  }
+ ],
+ "problem": [
+  "Agencies placing nannies need to book casual shifts and longer contracts, track worked time and pay out correctly. Each agency has its own rates, packages, wording and email rules, and some clients are corporate accounts billed differently.",
+  "Payments were the hardest part. A shift's final cost isn't known until the nanny clocks out, because overtime, mileage, extra children, add-on services and tips all change it. The money still has to be secured up front and split between agency and nanny, including nannies with no Stripe account."
+ ],
+ "constraints": [
+  {
+   "label": "Multi-agency",
+   "text": "One codebase serves several agencies, each with its own Stripe connected account, rates, terms, email recipients and onboarding fields."
+  },
+  {
+   "label": "Unknown final amount",
+   "text": "The amount charged at clock-out often differs from the estimate held at booking, so capture has to cope with charging both less and more."
+  },
+  {
+   "label": "Timezones and DST",
+   "text": "Shifts are stored once but shown in client and nanny timezones, and DST transitions moved times by an hour."
+  },
+  {
+   "label": "Live production data",
+   "text": "Fixes had to work alongside existing shifts and tracked time, sometimes with one-off commands to correct history."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Nuxt 2 client",
+   "Laravel API",
+   "Scheduler service",
+   "Stripe Connect",
+   "Nova admin",
+   "Mail & invoices"
+  ],
+  "caption": "Nuxt clients for families, nannies and agency admins talk to a Laravel Sanctum API; its scheduler and transaction services run payments through each agency's Stripe connected account, and agencies operate in Laravel Nova."
+ },
+ "sections": [
+  {
+   "heading": "Authorise at booking, settle at clock-out",
+   "paras": [
+    "I added an authorisation hold for each shift's estimated cost on the agency's connected account. At settlement, if the final amount fits within the hold, only that amount is captured; the agency's share goes in as the application fee and the nanny's share is credited separately.",
+    "My first version captured the full hold and created a second charge for the difference, which gave families two charges per shift. I changed it to cancel an insufficient hold and create one new payment for the full amount, so every shift settles as a single charge."
+   ]
+  },
+  {
+   "heading": "DST-safe shift times",
+   "paras": [
+    "Shift times were rendered by recalculating a DST-adjusted timezone, which moved shifts created before a DST change by an hour. I changed the scheduler and shift transformer to apply the offset only to shifts created from the current day onwards, so older shifts keep their times.",
+    "The same checks went into the Nova reports and the casual-shift flow, plus a one-off command to correct the specific shifts and tracked-time rows already saved wrong."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Duplicate notification emails",
+   "text": "Completing a client application sent the same emails from two code paths. I removed the duplicate path and limited one agency to a single admin email per new client."
+  },
+  {
+   "title": "Admin scheduler too heavy to load",
+   "text": "The scheduler loaded every nanny and client with full payloads at once. I trimmed unused fields from the transformers and added paginated infinite scrolling with filters in the Nuxt scheduler."
+  },
+  {
+   "title": "Nannies without Stripe accounts",
+   "text": "Payouts failed when a nanny hadn't connected Stripe. Their amount now goes to the agency instead, and cash payments record separate agency and nanny amounts."
+  }
+ ],
+ "outcome": [
+  "Shift payments run through each agency's connected account with agency/nanny splits, tips, mileage, child-count and add-on pricing, and clients, nannies and admins get PDF and email invoices.",
+  "Scheduling handles timezones and DST for new and historical shifts, and deployments to staging and production run through GitHub Actions pipelines I set up."
+ ],
+ "stack": [
+  "Laravel 8",
+  "Laravel Nova 4",
+  "Sanctum",
+  "Cashier / Stripe Connect",
+  "MySQL",
+  "Nuxt 2",
+  "Vuex",
+  "Tailwind",
+  "Twilio",
+  "Docker",
+  "GitHub Actions",
+  "AWS EC2 / S3",
+  "Sentry"
+ ]
+}

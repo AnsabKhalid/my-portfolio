@@ -1,0 +1,112 @@
+{
+ "slug": "sitesentinel",
+ "name": "SiteSentinel",
+ "kind": "ai",
+ "order": 8,
+ "image": "/work/sitesentinel.jpg",
+ "title": "Always-on safety cameras for a construction site",
+ "category": "Computer vision · Workplace safety · Multi-camera",
+ "year": "2026",
+ "client": "Personal project",
+ "role": "Solo build",
+ "summary": "Watches construction-site CCTV with YOLOv8 models for fire and smoke, workers without hard hats, falls and people in restricted areas, logs each incident with a snapshot and emails the team.",
+ "metrics": [
+  {
+   "value": "4",
+   "label": "detection models: fire/smoke, helmet, fall, restricted area"
+  },
+  {
+   "value": "8",
+   "label": "cameras at once by default, each with its own worker"
+  },
+  {
+   "value": "8",
+   "label": "growth signals scored to decide whether a fire is spreading"
+  },
+  {
+   "value": "30 s / 5 min",
+   "label": "cooldowns before an ongoing incident is logged / emailed again"
+  }
+ ],
+ "problem": [
+  "Site managers can't watch every feed all day, and the hazards that matter most (fire, missing hard hats, falls) become serious in seconds.",
+  "Detectors trained on clean photos also struggle with real CCTV, where workers are far away and their heads are only a few pixels tall."
+ ],
+ "constraints": [
+  {
+   "label": "Unattended cameras",
+   "text": "Each camera keeps analysing and logging even when nobody has the dashboard open, and reconnects by itself when a stream drops."
+  },
+  {
+   "label": "Distant workers",
+   "text": "On 1080p CCTV heads are small, so the helmet model runs at up to 960 px instead of 640, and small images are never upscaled."
+  },
+  {
+   "label": "Hardware",
+   "text": "Inference uses the NVIDIA GPU when PyTorch can see one and falls back to the CPU otherwise."
+  },
+  {
+   "label": "Alert fatigue",
+   "text": "A violation that lasts for minutes must not flood the incident log or the team's inbox."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "RTSP / USB camera",
+   "Latest-frame reader",
+   "YOLOv8 inference",
+   "Label + summarise",
+   "Incident + email",
+   "MJPEG stream"
+  ],
+  "caption": "Every camera runs its own background worker that keeps only the newest frame, runs one of four YOLO models on a shared inference thread, logs incidents and serves an annotated MJPEG stream."
+ },
+ "sections": [
+  {
+   "heading": "Keeping live video live while the model lags behind",
+   "paras": [
+    "Inference is slower than a camera's frame rate, so a plain read loop falls further behind every second. Each camera is wrapped in a reader thread that keeps only the newest frame; the analysis worker waits for a frame newer than the last one it processed, capped at 5 analyses per second.",
+    "The same worker handles failure. After about 5 seconds of missed reads the camera is marked gone, the stream shows a 'Reconnecting…' placeholder and the worker retries every 10 seconds. A detection error sets an error state without killing the camera thread."
+   ]
+  },
+  {
+   "heading": "Deciding when a fire is spreading, not just present",
+   "paras": [
+    "Responders need to know whether a fire is growing. A spread detector keeps a 10-frame history of fire area, velocity and coverage of a 6×6 grid on top of the fire model's boxes.",
+    "Eight signals (growth over 2, 3 and 4 frames, short and medium-term trends, velocity, acceleration, new grid cells, region growth) add to a score. Fires below 0.3% of the frame are ignored; 35 or more out of 100 marks the fire as spreading on the stream."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Inference on request threads leaked OS threads",
+   "text": "PyTorch creates a native worker pool for every thread that runs a model and never frees it, so inference on Flask's per-request threads leaked about 7 threads per request. All YOLO inference now goes through one single-worker executor."
+  },
+  {
+   "title": "One head reported as both 'hat' and 'person'",
+   "text": "The helmet model could output overlapping helmet and bare-head boxes for one head. Detection now uses class-agnostic NMS, and the raw classes go through a label mapping so only bare heads count as violations."
+  },
+  {
+   "title": "Ongoing violations flooding the log and inbox",
+   "text": "A new kind of violation is logged within 5 seconds, but the same one again only every 30 s. Email has its own 5-minute cooldown per violation and camera and counts what it suppressed."
+  }
+ ],
+ "outcome": [
+  "SiteSentinel runs several RTSP, HTTP or USB cameras at once, each assigned a model, and streams annotated video to a React dashboard. Uploaded images and videos can be analysed too.",
+  "Incidents are stored through SQLAlchemy (SQLite, MySQL or PostgreSQL) with snapshots, exported to CSV and emailed over SMTP. A health page reports device, CPU, memory and per-model latency."
+ ],
+ "stack": [
+  "Python",
+  "Flask",
+  "YOLOv8",
+  "PyTorch (CUDA)",
+  "OpenCV",
+  "SQLAlchemy",
+  "MJPEG",
+  "SMTP",
+  "React",
+  "TypeScript",
+  "Tailwind",
+  "shadcn/ui"
+ ]
+}

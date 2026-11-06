@@ -1,0 +1,116 @@
+{
+ "slug": "banyan-capital",
+ "name": "Banyan Capital",
+ "kind": "web",
+ "order": 1,
+ "featured": true,
+ "title": "Turning county obituary listings into worked probate leads, overnight and unattended",
+ "category": "Lead generation · Web scraping · Outreach automation",
+ "year": "2026",
+ "client": "Banyan Capital · US real-estate investors",
+ "role": "Lead developer: initial codebase, county scrapers, enrichment pipeline, Telnyx SMS/voice and the outreach cadence",
+ "team": "Team of 2",
+ "summary": "A CRM that scrapes obituaries from 8 Florida counties every night, traces each one to property and court records, and runs a 6-touch outreach cadence across mail, email and SMS until a person takes over.",
+ "metrics": [
+  {
+   "value": "8",
+   "label": "Florida counties scraped on a nightly schedule"
+  },
+  {
+   "value": "24",
+   "label": "county-specific scraper services (obituary, property, case search)"
+  },
+  {
+   "value": "6",
+   "label": "outreach touches in the automated 28-day cadence"
+  },
+  {
+   "value": "1M+",
+   "label": "records processed per county: obituaries, probate, property and contacts"
+  }
+ ],
+ "problem": [
+  "Banyan Capital finds inherited properties by reading obituaries and tracing the deceased to property and probate records. By hand, that means checking eight obituary feeds, eight property appraiser sites and eight clerk-of-court portals, then tracking who has been contacted and how.",
+  "Every source behaves differently: some sit behind Cloudflare Turnstile or reCAPTCHA, one blocks bots outright, others are just slow. The system had to run unattended, recover from partial failures and stop contacting anyone the moment they replied or opted out."
+ ],
+ "constraints": [
+  {
+   "label": "Hostile sources",
+   "text": "Several portals sit behind Cloudflare, DataDome or bot firewalls, so each county got its own approach: direct JSON, Browsershot, Selenium with captcha solving, or a public fallback dataset."
+  },
+  {
+   "label": "Unattended runs",
+   "text": "The scrape runs at 02:00 and the retry sweep every 4 hours, so failures have to be recorded, alerted on and retried without anyone watching."
+  },
+  {
+   "label": "Compliant outreach",
+   "text": "SMS only goes out in allowed hours, any reply stops automation, and STOP/END opt-outs can never be restarted."
+  },
+  {
+   "label": "No mail API",
+   "text": "Two touches are physical letters, so the system hands them to staff and keeps reminding until each one is marked sent."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Nightly scheduler",
+   "County scrapers",
+   "Enrichment queue",
+   "Retry sweep",
+   "Outreach cadence",
+   "Telnyx webhooks"
+  ],
+  "caption": "A scheduled command queues one scrape job per county; each queues idempotent enrichment jobs for new obituaries, a 4-hourly sweep retries failed steps, and new contacts enter a cadence that inbound Telnyx webhooks can stop."
+ },
+ "sections": [
+  {
+   "heading": "Making enrichment idempotent so retries were nearly free",
+   "paras": [
+    "Each obituary stores a per-step result (success, empty, failed or skipped) with an attempt counter in a JSON column. The EnrichObituary job only re-runs steps that are still failed and under 3 attempts; anything resolved is left alone.",
+    "That meant retrying needed no separate logic: the retry command finds obituaries with retriable failures through JSON queries and dispatches the same job again. A WithoutOverlapping lock keyed on the obituary stops a duplicate dispatch from enriching the same record twice."
+   ]
+  },
+  {
+   "heading": "Scrape runs that know when to stop, and say why",
+   "paras": [
+    "Every county run writes a record with pages scraped, new obituaries and jobs queued. Listings come newest first, so a run stops after two pages in a row add nothing new, which keeps nightly runs incremental without stopping on a single page of overlap.",
+    "A failure on page one marks the run failed and emails an alert; a failure partway through keeps what was scraped and records 'Stopped at page X/Y' instead of a clean success. Runs stuck in 'running' from a previous attempt are marked superseded before a new one starts."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Chrome proxy auth broke with Manifest V2's deprecation",
+   "text": "Selenium sent Chrome through an authenticated residential proxy using an MV2 extension, which stopped working when Chrome deprecated blocking webRequest. I replaced it with a small Node relay that Chrome reaches with --proxy-server and that adds the upstream credentials itself."
+  },
+  {
+   "title": "A bot firewall on one county's property appraiser",
+   "text": "Orange County's appraiser blocks automated traffic outright, so I switched it to the state Department of Revenue's statewide ArcGIS service. That service times out on county filters, so the scraper searches by last name and narrows by first name and county in PHP, retrying transient errors."
+  },
+  {
+   "title": "Headless Chrome crashing on the server",
+   "text": "Browsershot and ChromeDriver kept exiting on EC2 because of permission and profile-directory problems. A central server Chrome configuration (fresh writable profile per call, sandbox and dev-shm flags) fixed it, and a checkpointed script re-ran every record that failed during the outage."
+  }
+ ],
+ "outcome": [
+  "All eight counties run on the nightly schedule. Each obituary moves through a pipeline with verification, assignment and responded-at tracking, and every lead action is written to an activity log.",
+  "With outreach switched on, a 15-minute scheduler sends due SMS and email touches with merge fields, turns mail touches into staff tasks with daily reminders, and hands any SMS reply to a person through admin and agent notifications."
+ ],
+ "stack": [
+  "Laravel 12",
+  "Vue 3",
+  "Inertia",
+  "TypeScript",
+  "Queues",
+  "Selenium",
+  "Browsershot",
+  "DomCrawler",
+  "Oxylabs",
+  "2Captcha",
+  "Telnyx",
+  "Spatie Activitylog",
+  "Fortify",
+  "DomPDF",
+  "Text-to-speech AI voice agent"
+ ]
+}

@@ -1,0 +1,91 @@
+{
+ "slug": "aby-chalet",
+ "name": "Aby Chalet",
+ "kind": "web",
+ "order": 14,
+ "image": "/work/aby-chalet.jpg",
+ "link": "https://aby-chalet.com/",
+ "title": "A chalet booking platform for Kuwait with seasonal pricing and MyFatoorah payments",
+ "category": "Booking platform · Payments · Laravel",
+ "year": "2023",
+ "client": "Aby Chalet · Kuwait",
+ "role": "Laravel developer",
+ "summary": "A booking marketplace for chalets and guest houses in Kuwait. One Laravel codebase runs the guest website, a JSON API for the mobile apps, and an admin panel for owners and the platform.",
+ "metrics": [
+  {
+   "value": "52",
+   "label": "data models"
+  },
+  {
+   "value": "113",
+   "label": "API routes for the mobile apps"
+  },
+  {
+   "value": "6",
+   "label": "pricing calendars: season, weekday/weekend, Ramadan, spring break, holidays, offers"
+  },
+  {
+   "value": "2",
+   "label": "admin languages: English and Arabic"
+  }
+ ],
+ "problem": [
+  "Chalet rentals in Kuwait are priced by day type and season, with big jumps around Ramadan, spring break and public holidays. Owners needed one place to list properties, set prices per period, accept or reject requests and get paid; guests needed to find what was free, book it and pay a deposit or the full amount online."
+ ],
+ "constraints": [
+  {
+   "label": "Local payments",
+   "text": "Payments go through MyFatoorah, the Gulf gateway that supports KNET, with deposit, full and remaining-balance options."
+  },
+  {
+   "label": "Many parties",
+   "text": "Guests, chalet owners, companies with several chalets and super-admins each need their own permissions and screens."
+  },
+  {
+   "label": "Bilingual",
+   "text": "The admin side works in both English and Arabic."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Search & calendar",
+   "Pricing rules",
+   "Reservation",
+   "MyFatoorah pay",
+   "Reminders"
+  ],
+  "caption": "A guest searches availability, the price comes from the chalet's active season, holiday or offer rules, the booking is paid through MyFatoorah, and scheduled jobs send the reminders after that."
+ },
+ "sections": [
+  {
+   "heading": "Booking, payment and owner tooling",
+   "paras": [
+    "Each chalet page has variants for standard dates, holidays and events, and offers. At checkout the guest picks a deposit or full payment; the gateway invoice is created server-side and a callback records the result. Remaining balances can be paid later, with PDF invoices generated and emailed.",
+    "The admin covers owners and sub-chalets, season, Ramadan and spring-break price lists, closed dates, offers, reservation approvals, invoice and deposit reports, advertising packages and notifications. Scheduled jobs expire unanswered requests and send check-in, check-out and balance reminders."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Approving company chalet edits",
+   "text": "Companies can add or change chalets, but changes need approval first. Each chalet table has a matching history model that backs an approval queue for new chalets and edits."
+  },
+  {
+   "title": "Commission on discounted rent",
+   "text": "The platform takes a per-chalet commission. When an offer applies, the discount comes off the rent first and commission is calculated on what's left."
+  }
+ ],
+ "outcome": [
+  "The platform runs on a single Laravel app at aby-chalet.com, covering the guest site, the mobile API, owner and company self-service and finance reporting, with payments through MyFatoorah."
+ ],
+ "stack": [
+  "Laravel 7",
+  "PHP",
+  "MySQL",
+  "Blade",
+  "MyFatoorah",
+  "DomPDF",
+  "Push notifications",
+  "Cron jobs"
+ ]
+}

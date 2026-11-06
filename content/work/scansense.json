@@ -1,0 +1,113 @@
+{
+ "slug": "scansense",
+ "name": "ScanSense",
+ "kind": "ai",
+ "order": 13,
+ "image": "/work/scansense.jpg",
+ "title": "Document summaries from a local model, so nothing leaves the computer",
+ "category": "Document AI · OCR · Local LLM",
+ "year": "2026",
+ "client": "Personal project",
+ "role": "Solo build",
+ "summary": "Reads almost any document, OCRs scans and phone photos, and summarises it with Gemma 3 4B running locally through Ollama, then exports the summary as a PDF or emails it.",
+ "metrics": [
+  {
+   "value": "13",
+   "label": "document types, from PDF and Office files to HEIC and multi-page TIFF"
+  },
+  {
+   "value": "12,000",
+   "label": "characters per part before a document is summarised in stages"
+  },
+  {
+   "value": "6",
+   "label": "structured fields per summary"
+  },
+  {
+   "value": "4 GB",
+   "label": "of GPU memory the model and context have to fit in"
+  }
+ ],
+ "problem": [
+  "Contracts, invoices and reports often can't be pasted into a cloud AI service, and many of them are scans or phone photos with no text layer.",
+  "Small local models are private but make specific mistakes: they invent placeholder values and get arithmetic wrong when asked to total a table."
+ ],
+ "constraints": [
+  {
+   "label": "Privacy",
+   "text": "Documents never leave the machine: OCR runs on ONNX Runtime and summaries come from a local Ollama model."
+  },
+  {
+   "label": "4 GB GPU",
+   "text": "The model and an 8,192-token context have to fit in 4 GB of VRAM, which limits the choice to ~4B-parameter models."
+  },
+  {
+   "label": "Messy input",
+   "text": "Phone photos of paper are skewed, unevenly lit and include the desk around the page."
+  },
+  {
+   "label": "Small-model accuracy",
+   "text": "A 4B model can't be trusted to add up a column or leave a field honestly empty."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Upload / camera",
+   "Extract or OCR",
+   "Table overview",
+   "Chunk + notes",
+   "Gemma 3 summary",
+   "PDF / email"
+  ],
+  "caption": "Text is taken from digital files or OCR'd from scans, exact table statistics are computed in code, long documents are summarised part by part, and the model returns JSON in a fixed schema."
+ },
+ "sections": [
+  {
+   "heading": "Doing the arithmetic in code, not in the model",
+   "paras": [
+    "Small models copy cells instead of adding them up. For Excel and CSV files the extractor builds a 'computed exactly' table overview before the model sees the text: row count, each numeric column's total, average, highest and lowest with the row they came from, and subtotals per category column. Existing total rows are left out so nothing is counted twice.",
+    "The prompt tells the model to use those figures and never do its own arithmetic. Afterwards, any detail whose value is a placeholder (N/A, unknown, not specified) is removed."
+   ]
+  },
+  {
+   "heading": "Turning a phone photo into a scan",
+   "paras": [
+    "Before OCR, a photo goes through a scanner-app step: Canny edges, a 4-cornered shape covering 20–98% of the frame warped flat with a perspective transform, then CLAHE to even out lighting. With no clear page outline, the image is left as it is.",
+    "OCR returns unordered text boxes, so I rebuild reading order by grouping boxes into lines and sorting each left to right. PDF pages with under 25 characters of real text are rendered at 200 DPI and OCR'd the same way."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Ollama left half the model on the CPU",
+   "text": "Ollama's memory estimate put about half of gemma3:4b on the CPU: 85 s per summary versus 46 s fully on the GPU. Requests now ask for every layer on the GPU and retry without that if the GPU is full."
+  },
+  {
+   "title": "Thinking models spending minutes reasoning",
+   "text": "Models like Qwen3 'think' before answering, which summaries don't need. Requests turn thinking off and retry without the flag for models that don't support it, so any Ollama model works."
+  },
+  {
+   "title": "Long documents overflowing the context",
+   "text": "Text over 12,000 characters is split on paragraph boundaries; the model writes notes on each part, keeping names, dates and amounts exact, and the summary is written from those notes."
+  }
+ ],
+ "outcome": [
+  "Documents are queued and processed in the background with per-page progress, and unfinished jobs resume after a restart. Each result has a title, type, summary, key points, details and action items, in three lengths and any language.",
+  "Summaries are stored in SQLite and can be exported as PDF, downloaded with the extracted text, or emailed with the PDF attached."
+ ],
+ "stack": [
+  "Python",
+  "Flask",
+  "Ollama",
+  "Gemma 3 4B",
+  "RapidOCR",
+  "ONNX Runtime",
+  "OpenCV",
+  "PyMuPDF",
+  "python-docx",
+  "fpdf2",
+  "SQLite",
+  "React",
+  "TypeScript"
+ ]
+}

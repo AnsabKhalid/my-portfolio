@@ -1,0 +1,64 @@
+{
+ "slug": "invoice-owl",
+ "name": "Invoice Owl",
+ "kind": "web",
+ "order": 17,
+ "link": "https://www.invoiceowl.com/",
+ "title": "Invoicing and estimating software for contractors and small businesses",
+ "category": "SaaS · Invoicing · P&L dashboards",
+ "year": "",
+ "client": "InvoiceOwl",
+ "role": "Developer: invoicing and P&L dashboard with interactive Chart.js revenue and overdue-invoice metrics",
+ "summary": "InvoiceOwl helps contractors and small businesses send estimates and invoices, take payments online and see how the business is doing. I built its invoicing and P&L dashboard: interactive Chart.js views of revenue and overdue invoices, fed by the REST API.",
+ "metrics": [
+  {
+   "value": "3",
+   "label": "platforms: web, iOS, Android"
+  },
+  {
+   "value": "5",
+   "label": "businesses per account"
+  }
+ ],
+ "problem": [
+  "Tradespeople were juggling estimates, invoices, payments and client records across separate tools. InvoiceOwl puts them in one place: an approved estimate becomes an invoice, invoices go out with reminders, and reports show how the business is performing."
+ ],
+ "constraints": [
+  {
+   "label": "API-driven UI",
+   "text": "Dashboards and reports read their data from the product's REST API."
+  },
+  {
+   "label": "Multi-platform",
+   "text": "The same account is used on the web app and the iOS and Android apps."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Estimate",
+   "Convert to invoice",
+   "Send & remind",
+   "Online payment",
+   "Reports"
+  ],
+  "caption": "Estimate to invoice to payment, with reports and charts showing the business's performance."
+ },
+ "sections": [
+  {
+   "heading": "What the product covers",
+   "paras": [
+    "Estimates, invoices, card and ACH payments, credit memos, purchase orders, e-signatures, client management, review collection, real-time notifications when documents are opened, QuickBooks Online sync and reports, for up to 5 businesses from one account."
+   ]
+  }
+ ],
+ "challenges": [],
+ "outcome": [
+  "InvoiceOwl runs as a web app with iOS and Android apps. The dashboard shows revenue, profit and loss and overdue invoices as interactive Chart.js charts, read straight from the REST API."
+ ],
+ "stack": [
+  "JavaScript",
+  "Chart.js",
+  "REST API"
+ ],
+ "image": "/work/invoice-owl.jpg"
+}

@@ -1,0 +1,108 @@
+{
+ "slug": "print-packaging-erp",
+ "name": "Print & Packaging ERP",
+ "kind": "web",
+ "order": 9,
+ "confidential": true,
+ "title": "Rebuilding a print shop's ERP around how presses and activities are actually priced",
+ "category": "ERP · Manufacturing · Pricing engine",
+ "year": "2026",
+ "client": "Private client · Commercial print & packaging",
+ "role": "Backend engineer across both versions: master data and press management in v1; activity pricing, lock-to formulas, ink and die libraries, suppliers, goals and material purchasing in v2",
+ "team": "Team of 2",
+ "summary": "A REST ERP for a print and packaging shop. The first version covered customers, projects and press setup; I helped rebuild it as a second version with quoting, proofs, orders, ink formulas, die tracking and material purchasing.",
+ "metrics": [
+  {
+   "value": "36 → 84",
+   "label": "data models, v1 to v2"
+  },
+  {
+   "value": "46 → 94",
+   "label": "migrations, v1 to v2"
+  },
+  {
+   "value": "23",
+   "label": "job variables available to pricing formulas"
+  },
+  {
+   "value": "140",
+   "label": "API route definitions in v2"
+  }
+ ],
+ "problem": [
+  "A print job is priced from its production steps: press time, setup, washouts, die cuts, ink and waste. Some steps are priced by quantity tiers, some by hours, some by both, often with named options like finishes that each have their own tier table.",
+  "The first version modelled customers and press setup well but had nowhere to put quoting, proofing, ink formulation or die inventory, and press pricing lived in a separate settings table that made presses harder to edit."
+ ],
+ "constraints": [
+  {
+   "label": "Configurable pricing",
+   "text": "Shop staff must define pricing rules as data, without code changes, including which job variable a price is locked to."
+  },
+  {
+   "label": "Soft deletes everywhere",
+   "text": "Every core model uses soft deletes and UUIDs, which conflicts with composite unique keys when records are replaced."
+  },
+  {
+   "label": "Audit trail",
+   "text": "Changes to customers, templates and tasks are logged through Activitylog and model observers."
+  },
+  {
+   "label": "Short window",
+   "text": "v1 ran February to March and v2 March to April, so the rebuild carried v1's conventions forward instead of starting over."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "/api/v1 routes",
+   "Form requests",
+   "Admin services",
+   "Pricing models",
+   "Observers + log",
+   "API resources"
+  ],
+  "caption": "A versioned REST API with one service class per domain, enum-cast models, UUID route keys and resource transformers."
+ },
+ "sections": [
+  {
+   "heading": "Pricing as data: lock-to formulas, tiers and options",
+   "paras": [
+    "Each activity has pricings, and each pricing is locked to a formula built from 23 job variables such as press sheets, hits, total passes, ink coverage and die-cut cycles, with a modifier (multiply, divide, add, subtract) applied. On top sit quantity or hour tiers with cost, margin, price and profit, plus optional named options with their own tiers and a default.",
+    "The service detects the pricing type from the payload (quantity, hours or both) and writes the whole pricing tree in one transaction. v2 also folds the old press pricing settings (run cost per hour, setup, cleanup and washout times) directly onto presses."
+   ]
+  },
+  {
+   "heading": "Shop-floor libraries: inks, dies and materials",
+   "paras": [
+    "Inks belong to a series and carry a formula of series colours with percentages, replaced atomically on update. Dies have a lifecycle status and supplier, and every status change writes a history row, so a die can be traced from the quote onwards.",
+    "Material purchase orders track ordered and received quantities per line. On update only the received delta is applied to stock, so re-saving a PO never double-counts, and status moves to partially or fully received from the totals."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Soft deletes vs unique keys",
+   "text": "Pricings are unique per activity and lock, and goals per company and year, so soft-deleted rows still blocked re-creating the same record. Replaced pricing trees and deleted goals are now force-deleted."
+  },
+  {
+   "title": "Pricing payload outgrew its validation",
+   "text": "Once options with their own tiers arrived, the request shape couldn't express quantity and hour tiers together. I restructured the requests, resource and service and added a combined pricing type."
+  },
+  {
+   "title": "Carrying v1 into a new repository",
+   "text": "The rebuild moved to a fresh repository. I brought the v1 codebase across in one commit and refactored models and press setup from there, instead of rewriting modules that already worked."
+  }
+ ],
+ "outcome": [
+  "v2 more than doubled the domain model and added quotes, proofs, orders, shipping, suppliers, inks, dies and materials alongside the original customer and press modules.",
+  "Pricing rules, press costs and ink formulas are now records the shop edits itself, exposed through the versioned API."
+ ],
+ "stack": [
+  "PHP 8.2",
+  "Laravel 12",
+  "Sanctum",
+  "Spatie Media Library",
+  "Activitylog",
+  "Pest",
+  "MySQL"
+ ]
+}

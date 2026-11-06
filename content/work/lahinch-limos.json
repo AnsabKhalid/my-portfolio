@@ -1,0 +1,79 @@
+{
+ "slug": "lahinch-limos",
+ "name": "Lahinch Limos",
+ "kind": "site",
+ "order": 19,
+ "image": "/work/lahinch-limos.jpg",
+ "link": "https://lahinchlimos.com/",
+ "title": "A booking site for a chauffeur service on Ireland's Wild Atlantic Way",
+ "category": "WordPress · Booking · Elementor",
+ "year": "2025",
+ "client": "Lahinch Limos · Co. Clare, Ireland",
+ "role": "WordPress developer",
+ "summary": "The WordPress/Elementor site for a chauffeur company in North Clare, presenting its services with a three-step booking form for transfers, hourly hire and tours.",
+ "metrics": [
+  {
+   "value": "5",
+   "label": "services presented"
+  },
+  {
+   "value": "3",
+   "label": "booking form steps"
+  },
+  {
+   "value": "3",
+   "label": "booking types: distance, hourly, tours"
+  },
+  {
+   "value": "4",
+   "label": "airports served"
+  }
+ ],
+ "problem": [
+  "A local chauffeur business needed a site that sells chauffeur hire, airport transfers, private tours, luggage transfers and group trips, and collects bookings with enough detail to quote and assign a vehicle."
+ ],
+ "constraints": [
+  {
+   "label": "Owner-editable",
+   "text": "Built in Elementor so the owner can update content without a developer."
+  },
+  {
+   "label": "Usable bookings",
+   "text": "Every booking includes trip type, date, time, route, passengers, luggage and preferred vehicle."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Service pages",
+   "Trip details",
+   "Select vehicle",
+   "Contact details",
+   "Email to owner"
+  ],
+  "caption": "Visitors go from the service pages to a multi-step form that collects the trip, vehicle choice and contact details."
+ },
+ "sections": [
+  {
+   "heading": "Site and booking flow",
+   "paras": [
+    "Home, About, Services, Blog, FAQ, Contact and Book Now pages. The booking form runs in three steps: trip details (type, date, time, pickup, drop-off, hours, passengers, suitcases), vehicle choice, and contact details."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "No same-day bookings",
+   "text": "A small script hooks into the form's date picker and sets the earliest date to tomorrow, so customers can't request a same-day pickup."
+  }
+ ],
+ "outcome": [
+  "The site is live and takes structured booking requests across three booking types, alongside service, FAQ and blog content."
+ ],
+ "stack": [
+  "WordPress",
+  "Elementor Pro",
+  "Elementor Forms",
+  "flatpickr",
+  "jQuery"
+ ]
+}

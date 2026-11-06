@@ -1,0 +1,113 @@
+{
+ "slug": "shelfvision",
+ "name": "ShelfVision AI",
+ "kind": "ai",
+ "order": 6,
+ "featured": true,
+ "image": "/work/shelfvision.jpg",
+ "title": "Stock levels, gaps and product names from one shelf photo",
+ "category": "Retail analytics · Detection · Visual search",
+ "year": "2026",
+ "client": "Personal project",
+ "role": "Solo build: detection, shelf analysis, recognition and dashboard",
+ "summary": "From a single photo of a store shelf, ShelfVision AI counts every product, finds bays and shelf rows, measures stock levels, marks gaps and possibly misplaced items, and names products against inventory photos.",
+ "metrics": [
+  {
+   "value": "70% / 40%",
+   "label": "shelf fill below which a shelf is marked Low stock / Empty"
+  },
+  {
+   "value": "300",
+   "label": "vertical strips each shelf is split into to measure coverage"
+  },
+  {
+   "value": "60%",
+   "label": "similarity a product needs to an inventory photo before it's named"
+  },
+  {
+   "value": "1,000",
+   "label": "maximum detections per photo"
+  }
+ ],
+ "problem": [
+  "Empty shelf space is lost sales, but staff only notice it while walking the aisles. The project's first version used a general COCO detector that didn't know store products and found almost none on a real shelf.",
+  "Counting boxes isn't enough. A store needs to know which shelf is low, how many products are missing, whether something is in the wrong place, and which product to restock."
+ ],
+ "constraints": [
+  {
+   "label": "Any store",
+   "text": "Shelf structure has to be inferred from the products alone, with no store-specific training or planogram."
+  },
+  {
+   "label": "Store fixtures",
+   "text": "Fridge door frames, pillars and gaps between units are empty space but not missing stock."
+  },
+  {
+   "label": "Local only",
+   "text": "Everything runs on the PC, using the GPU when PyTorch can see one, and photos are never uploaded."
+  },
+  {
+   "label": "Few reference photos",
+   "text": "Products are recognised from 2–3 photos each, taught by clicking boxes on a scanned shelf."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Shelf photo",
+   "YOLO11s SKU-110K",
+   "Bays + shelf rows",
+   "Gaps + misplaced",
+   "DINOv2 matching",
+   "Inventory alerts"
+  ],
+  "caption": "A YOLO11s detector trained on SKU-110K finds every product. Coverage profiles split the photo into bays and shelves, and DINOv2 plus colour features name each product against the inventory's reference photos."
+ },
+ "sections": [
+  {
+   "heading": "Finding shelves from where the products stand",
+   "paras": [
+    "There's no shelf detector, so I measure at every height how much of the width is covered by products; shelf edges show up as dips in that profile. Measurements showed seams between stacked products leave 43–70% coverage and shelf edges 0–35%, so a dip only counts if coverage falls at least halfway (below 38% for uneven fridge doors). Of two cuts closer than 0.7 of a product's height, the deeper one is kept.",
+    "Before that, the photo is split into bays at full-height columns with at most 10% coverage, between half a product and a quarter of the photo wide, because fridge doors put their shelves at different heights. Bays with fewer than 5 products join their neighbour."
+   ]
+  },
+  {
+   "heading": "Telling store structure from missing stock",
+   "paras": [
+    "A strip that's empty on at least 60% of shelves is treated as structure (a pillar or hook spacing) rather than a gap, but only if it's narrower than 3 product widths. A gap must be at least 0.8 of a typical product's width (1.5 at a bay edge, where perspective is unreliable), and each gap gets an estimate of how many products are missing.",
+    "A product is flagged as possibly misplaced when its colour histogram differs from both neighbours while those neighbours match each other. Shelf health is the stock level minus 3 points per misplaced product, capped at 25."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Tall bottles cut off before recognition",
+   "text": "Square-cropping a bottle for the ViT cut off its label, so crops are padded to a square with their mean colour instead. A reference photo can only match a box of similar shape (aspect ratio within 1.6×), which stops a can matching a bottle."
+  },
+  {
+   "title": "Same brand, different flavours",
+   "text": "Drinks of one brand look nearly identical to a general visual model, so DINOv2 ViT-S/14 features are combined with a weighted HSV colour signature and flavour colours count alongside label shape."
+  },
+  {
+   "title": "Seams read as extra shelves",
+   "text": "Stacked products left shallow dips that looked like shelf edges. Dips are now checked for prominence and depth, the profile is lightly smoothed, and tiny groups inside another shelf's height are merged into it."
+  }
+ ],
+ "outcome": [
+  "One photo (upload, camera, or a webcam scanning every 30 s to 5 min) returns a product count, bays, shelves with stock levels, gaps with missing-product estimates, misplaced flags and a Good / Needs attention / Critical health score.",
+  "Recognised products link to an inventory with facings, restock and reorder alerts. History and trends are kept per location and export to CSV."
+ ],
+ "stack": [
+  "Python",
+  "Flask",
+  "YOLO11s (SKU-110K)",
+  "DINOv2",
+  "PyTorch",
+  "OpenCV",
+  "SciPy",
+  "SQLite",
+  "pytest",
+  "React",
+  "TypeScript",
+  "Recharts"
+ ]
+}

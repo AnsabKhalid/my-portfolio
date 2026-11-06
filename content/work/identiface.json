@@ -1,0 +1,108 @@
+{
+ "slug": "identiface",
+ "name": "IdentiFace",
+ "kind": "ai",
+ "order": 12,
+ "image": "/work/identiface.jpg",
+ "title": "Face recognition and analysis, with the age model replaced after testing",
+ "category": "Face recognition · Biometrics · Web app",
+ "year": "2026",
+ "client": "Personal project",
+ "role": "Solo build",
+ "summary": "A web app on DeepFace that recognises registered people from a webcam or photo, verifies whether two photos show the same person, and estimates age, gender, emotion and ethnicity.",
+ "metrics": [
+  {
+   "value": "5",
+   "label": "app tabs: Recognise, Verify, Analyse, People, System"
+  },
+  {
+   "value": "9",
+   "label": "age ranges predicted, from 0–2 to 70+"
+  },
+  {
+   "value": "0.5",
+   "label": "minimum face-detection confidence before a face is used"
+  },
+  {
+   "value": "60 s",
+   "label": "cooldown before the same person is logged again"
+  }
+ ],
+ "problem": [
+  "DeepFace makes face recognition easy to call, but a library isn't a product. You still need a place to register people, a live camera view, a log of who was seen and a way to compare two photos.",
+  "The library's default attribute models also have blind spots, and shipping them untested means confidently wrong answers about people."
+ ],
+ "constraints": [
+  {
+   "label": "Thread safety",
+   "text": "DeepFace caches models per process and they aren't thread-safe, so every model call runs on one worker thread."
+  },
+  {
+   "label": "Model swaps",
+   "text": "Changing the recognition model makes every stored embedding unusable, because embeddings from different models can't be compared."
+  },
+  {
+   "label": "Trust",
+   "text": "Gender predictions below 75% confidence are flagged as uncertain rather than presented as fact."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Webcam / photo",
+   "YuNet detection",
+   "ArcFace embedding",
+   "In-memory index",
+   "FairFace ViTs",
+   "SQLite + log"
+  ],
+  "caption": "YuNet finds faces and ArcFace embeds them; embeddings are matched by cosine distance against an in-memory index, and FairFace ONNX models estimate age and gender."
+ },
+ "sections": [
+  {
+   "heading": "Replacing DeepFace's age and gender models",
+   "paras": [
+    "DeepFace's built-in age model was trained mostly on adult celebrities. In my tests it estimated every child as an adult, and its gender model was right 66% of the time (53% for Black faces). I kept DeepFace for detection, recognition, emotion and ethnicity and replaced age and gender with FairFace ViT models in ONNX Runtime.",
+    "The new models predict one of 9 age ranges instead of a single number, use the 25% padding they were trained with, and return the full ranked probabilities."
+   ]
+  },
+  {
+   "heading": "A recognition index that survives model changes",
+   "paras": [
+    "Registered embeddings sit in an L2-normalised matrix in memory, so recognition is one matrix multiplication and a best-distance-per-person check against the model's threshold.",
+    "Each embedding records which model produced it. When the configured model changes, every registered photo is re-encoded, so switching from ArcFace to Facenet512 doesn't break the people already registered."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "The 'whole image' fallback looked like a face",
+   "text": "With enforce_detection off, DeepFace returns the whole image as a face with confidence 0 when it finds none. Faces below 0.5 confidence are now dropped so that fallback is never matched or registered."
+  },
+  {
+   "title": "Native thread-pool leaks under Flask",
+   "text": "Calling models from per-request threads leaked native thread pools. Every model call now goes through a single-worker executor, which also records latency per operation for the System page."
+  },
+  {
+   "title": "Live recognition flooding the log",
+   "text": "A person in front of the webcam is recognised every frame, so a sighting is written at most once a minute per person and source."
+  }
+ ],
+ "outcome": [
+  "IdentiFace recognises registered people live from the webcam or a photo, marks strangers 'Unknown', logs sightings with snapshots, verifies photo pairs with a similarity score, and analyses age range, gender, emotion and ethnicity.",
+  "People can be registered with several photos, renamed or deleted, and a System page shows the loaded models, threshold and latency."
+ ],
+ "stack": [
+  "Python",
+  "Flask",
+  "DeepFace",
+  "ArcFace",
+  "YuNet",
+  "FairFace ViT",
+  "ONNX Runtime",
+  "OpenCV",
+  "SQLite",
+  "React",
+  "TypeScript",
+  "Tailwind"
+ ]
+}

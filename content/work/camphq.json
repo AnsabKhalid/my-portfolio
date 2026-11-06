@@ -1,0 +1,105 @@
+{
+ "slug": "camphq",
+ "name": "CampHQ",
+ "kind": "web",
+ "order": 11,
+ "confidential": true,
+ "title": "A workspace where every organisation gets its own database",
+ "category": "SaaS · Multi-tenancy · Collaboration",
+ "year": "2024",
+ "client": "Private client · Multi-tenant team workspace",
+ "role": "Backend engineer: tasks, comments, tags, events with reminders, profile APIs, Google Authenticator 2FA, organisation updates across databases, and the onboarding test suite",
+ "team": "Team of 4",
+ "summary": "A Laravel 11 multi-tenant workspace. A super admin provisions organisations on subscription plans, and each organisation gets an isolated database for its users, roles, campaigns, tasks and events.",
+ "metrics": [
+  {
+   "value": "23",
+   "label": "tenant-database migrations"
+  },
+  {
+   "value": "17",
+   "label": "tenant models"
+  },
+  {
+   "value": "17",
+   "label": "end-to-end Pest cases for onboarding"
+  },
+  {
+   "value": "65",
+   "label": "tenant-scoped API route definitions"
+  }
+ ],
+ "problem": [
+  "Each customer organisation needed its own users, roles, permissions and work data, isolated well enough that one organisation's data could never leak into another's queries.",
+  "Login, subscriptions and billing still had to stay central, so a super admin could create, pause and manage organisations without entering their databases."
+ ],
+ "constraints": [
+  {
+   "label": "Single domain",
+   "text": "Tenants don't get subdomains, so the tenant has to be resolved from the logged-in user, not the host name."
+  },
+  {
+   "label": "Two user records",
+   "text": "A person exists as a central login user and as a tenant user, and profile changes must stay in sync across both databases."
+  },
+  {
+   "label": "Pluggable entities",
+   "text": "Tags, comments and events had to attach to tasks now and other entities later without schema changes."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Sanctum login",
+   "Resolve tenant",
+   "Init tenancy",
+   "Tenant repository",
+   "Tenant database",
+   "JSON response"
+  ],
+  "caption": "stancl/tenancy creates one database per organisation, and a custom middleware initialises tenancy from the logged-in user's tenant."
+ },
+ "sections": [
+  {
+   "heading": "Tenancy resolved from the user, not the host",
+   "paras": [
+    "A custom identification middleware loads the tenant from the authenticated user and initialises tenancy against a synthetic domain, so every organisation shares one hostname while its queries run against its own database.",
+    "Organisation updates switch connections deliberately: the organisation is written centrally, tenancy is initialised to update the tenant user and role, then ended before the central login user is written, so a change appears in both stores."
+   ]
+  },
+  {
+   "heading": "Polymorphic collaboration building blocks",
+   "paras": [
+    "Tags, comments and events are polymorphic, so any tenant entity can carry them. Events have registration windows, privacy and type, plus separate reminder and attendee tables.",
+    "Tasks log only changed attributes through Activitylog, so the activity feed shows real field changes, and users can enrol in Google Authenticator 2FA with QR codes and a backup key."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Tag attach and detach as two calls",
+   "text": "Separate endpoints let client and server disagree about a task's tags, and a unique index made re-applying a tag fail. I replaced them with one sync endpoint and dropped the constraint."
+  },
+  {
+   "title": "Updates across two databases",
+   "text": "Organisation and profile updates touched central and tenant records, and keeping them in step took several fixes. The final flow switches into and out of the tenant explicitly at each step."
+  },
+  {
+   "title": "Proving onboarding end to end",
+   "text": "Onboarding chains login, plan choice, organisation creation, admin password reset and user management. I wrote a Pest suite that walks the whole chain with shared state, so a regression anywhere shows up."
+  }
+ ],
+ "outcome": [
+  "The platform provisions an isolated database per organisation and exposes tenant-scoped APIs for users, roles, campaigns, tasks, comments, tags and events. New tenant entities can reuse the polymorphic building blocks without migrations."
+ ],
+ "stack": [
+  "PHP 8.2",
+  "Laravel 11",
+  "stancl/tenancy",
+  "Sanctum",
+  "Activitylog",
+  "Media Library",
+  "Google2FA",
+  "Pest",
+  "MySQL"
+ ]
+}

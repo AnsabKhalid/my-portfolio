@@ -1,0 +1,81 @@
+{
+ "slug": "sms-ai",
+ "name": "SMS-AI",
+ "kind": "web",
+ "order": 15,
+ "title": "A Vue front end for AI teaching templates with streamed answers and a chatbot",
+ "category": "AI tooling · EdTech · Vue 3",
+ "year": "2024",
+ "client": "Student management system",
+ "role": "Frontend developer (Vue 3), plus prompt engineering and model training for domain-specific workflows",
+ "summary": "The Vue 3 front end of an AI assistant inside a student management system: teachers fill in templates such as lesson plans or worksheets and the answer streams in live, with a real-time chatbot and a history of results. I also built the admin UI for configuring chatbots.",
+ "metrics": [
+  {
+   "value": "4",
+   "label": "signed-in screens: templates, runner, chatbot, history"
+  },
+  {
+   "value": "2",
+   "label": "LLM providers to choose from (GPT-4, Gemini)"
+  },
+  {
+   "value": "3",
+   "label": "maximum responses per template run"
+  },
+  {
+   "value": "2",
+   "label": "WebSocket channels: templates and chat"
+  }
+ ],
+ "problem": [
+  "Teachers needed classroom material from structured prompts without writing prompts themselves. Every template has its own fields, so forms couldn't be hard-coded, and LLM answers take long enough that waiting for the full response feels broken."
+ ],
+ "constraints": [
+  {
+   "label": "Schema-driven forms",
+   "text": "The backend sends each template's fields, response type, response count and whether the model can be chosen, and the form renders from that."
+  },
+  {
+   "label": "Streaming output",
+   "text": "Answers arrive over a WebSocket in chunks and have to appear as they come in."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Auth & guard",
+   "Template list",
+   "Dynamic form",
+   "WebSocket stream",
+   "Markdown history"
+  ],
+  "caption": "The template's fields render from its schema, the request goes out over a WebSocket, and the answer streams into Vuex and renders as Markdown."
+ },
+ "sections": [
+  {
+   "heading": "Templates, chatbot and history",
+   "paras": [
+    "Each template page builds its inputs (dropdown, textarea or text), an optional choice between OpenAI and Gemini and a counter for up to 3 results. The chatbot uses its own socket channel, and history views list past runs and chats as Markdown.",
+    "For the chatbot admin I built bot creation (name, language, prompt, logo, response length), knowledge-file upload from disk or a link, grid and list file views, preview and editing in TinyMCE."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Building streamed answers in the store",
+   "text": "Each incoming frame goes to Vuex and is appended to the current message; the message counter only moves on when the backend signals the stream is complete, so partial chunks never become separate messages."
+  }
+ ],
+ "outcome": [
+  "Teachers sign in, pick a template, choose the model, watch answers stream in and review earlier results, all on one Vue 3 + Vuex + Tailwind codebase talking to the AI backend over REST and WebSockets."
+ ],
+ "stack": [
+  "Vue 3",
+  "Vuex",
+  "Tailwind",
+  "WebSockets",
+  "OpenAI GPT-4",
+  "Google Gemini",
+  "Python",
+  "TinyMCE"
+ ]
+}

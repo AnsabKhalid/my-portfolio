@@ -1,0 +1,112 @@
+{
+ "slug": "wholesale-erp",
+ "name": "Wholesale Distribution ERP",
+ "kind": "web",
+ "order": 5,
+ "confidential": true,
+ "title": "Purchase orders, pick tickets and invoices that paginate themselves",
+ "category": "ERP · Inventory · Document generation",
+ "year": "2026",
+ "client": "Private client · US home-goods wholesale",
+ "role": "Backend engineer: purchase, sales, invoice, inventory, transfer and price-level APIs, Excel import/export, and the whole PDF document layer",
+ "team": "Team of 2",
+ "summary": "An API-only Laravel 13 ERP for a US home-goods wholesaler covering procurement, multi-warehouse inventory, sales orders, invoicing, claims, credit memos and a general ledger. I owned the order documents, the spreadsheet pipeline and customer-specific pricing.",
+ "metrics": [
+  {
+   "value": "57",
+   "label": "data models"
+  },
+  {
+   "value": "84",
+   "label": "migrations"
+  },
+  {
+   "value": "8",
+   "label": "paginated PDF document templates"
+  },
+  {
+   "value": "9",
+   "label": "states a purchase order moves through"
+  }
+ ],
+ "problem": [
+  "The wholesaler imports goods by container and sells them from several US warehouses. Each purchase order moves through nine states, from draft to arrived-at-port to fully received, and stock has to be held for sales orders, moved between warehouses and written up on pick tickets and packing lists that staff actually print.",
+  "Those documents had to look like the paper the client already used: a header and footer on every page, rows that never split across a break, totals only on the last page. Descriptions vary from one line to several paragraphs, so a fixed number of rows per page never fit."
+ ],
+ "constraints": [
+  {
+   "label": "API-only",
+   "text": "The backend serves a separate frontend over Sanctum tokens, so every document and export is generated server-side and streamed."
+  },
+  {
+   "label": "Variable-height rows",
+   "text": "Long product descriptions make row height unpredictable, which broke fixed rows-per-page pagination."
+  },
+  {
+   "label": "Per-customer pricing",
+   "text": "A customer can have a negotiated price per product, a price level, or neither, and orders must flag lines that differ."
+  },
+  {
+   "label": "Spreadsheet catalogue",
+   "text": "The client maintains its catalogue in Excel, embedded images included, so import has to round-trip cleanly with export."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Sanctum API",
+   "Form requests",
+   "Service layer",
+   "Observers",
+   "Measure pass",
+   "PDF / XLSX out"
+  ],
+  "caption": "Controllers stay thin: services hold the business rules, observers recompute product status and write the inventory audit log, and documents render in two passes."
+ },
+ "sections": [
+  {
+   "heading": "Two-pass PDF pagination instead of guessed page budgets",
+   "paras": [
+    "dompdf can't tell you in advance where it will break a page, and my first templates used hand-tuned pixel budgets. I replaced them with a layout measurer: in a first pass the template renders onto a 100,000pt-tall sheet with the header, table head, every row, the last-page block and the footer tagged, and a dompdf callback records each element's real height.",
+    "From those measurements I compute the page budget and pack rows greedily. If the last page can't fit the totals, trailing rows move to a new page, and a fill height keeps the footer at the bottom. All eight documents (sales orders, invoices, purchase orders, pick tickets, packing lists, container sheets, transfer tickets) share it, and the refactor removed 248 net lines of per-template code."
+   ]
+  },
+  {
+   "heading": "Price resolution and catalogue round-tripping",
+   "paras": [
+    "When an order line is saved, the expected price follows a fixed precedence: the customer's negotiated product price, then their price level, then the product's sale price. A line more than half a cent off is flagged so sales staff see the deviation instead of having it silently overridden.",
+    "The catalogue importer maps headers case-insensitively, validates every row before writing anything, then upserts by item number in one transaction. SKU collisions are reported back instead of failing the file, and images embedded in the sheet are attached to their product after the transaction commits."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Page breaks tuned by hand",
+   "text": "Pick tickets and invoices split rows or pushed footers onto empty pages, and I was fixing them by nudging constants. The measurement pass replaced the guesswork, and every template now shares one paginator."
+  },
+  {
+   "title": "Order numbers colliding after deletes",
+   "text": "Sales order numbers were the yearly row count plus one, so deleting an order could make the next number repeat. The generator now parses the highest existing number and increments it."
+  },
+  {
+   "title": "Unstable cursor pagination",
+   "text": "Cursor pagination drifted when sorting on non-unique columns, and sort keys came straight from the request. I added a per-service whitelist of sortable columns and an id tie-breaker on every ordered query."
+  }
+ ],
+ "outcome": [
+  "The system covers the full procure-to-invoice cycle across 25 service domains. Every printable document goes through the same measured layout, so a new template means tagging elements rather than tuning constants.",
+  "Every inventory change is audit-logged by an observer with its movement type (receive, adjust, sale, return, transfer, hold, release) and before/after quantities."
+ ],
+ "stack": [
+  "PHP 8.3",
+  "Laravel 13",
+  "Sanctum",
+  "Spatie Permission",
+  "Media Library",
+  "Activitylog",
+  "dompdf",
+  "PhpSpreadsheet",
+  "Pest",
+  "MySQL"
+ ],
+ "featured": true
+}

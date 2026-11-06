@@ -1,0 +1,65 @@
+{
+ "slug": "dulhansdiary",
+ "name": "Dulhansdiary",
+ "kind": "site",
+ "order": 18,
+ "link": "https://dulhansdiary.com/",
+ "title": "An online store for Pakistani bridal jewellery, bags and wedding accessories",
+ "category": "E-commerce · Payments · PHP",
+ "year": "",
+ "client": "Dulhansdiary",
+ "role": "Developer",
+ "summary": "Dulhansdiary sells handmade Pakistani bridal jewellery, clutches, potli bags, juttis and keepsake boxes to international customers. I built its PHP store with Stripe and PayPal checkout.",
+ "metrics": [
+  {
+   "value": "2",
+   "label": "payment gateways: Stripe and PayPal"
+  },
+  {
+   "value": "6",
+   "label": "shipping regions: UK, US, Canada, Australia, UAE, Kuwait"
+  }
+ ],
+ "problem": [
+  "A bridal accessories brand needed to sell a large, many-category catalogue to customers outside Pakistan with secure card and PayPal payments."
+ ],
+ "constraints": [
+  {
+   "label": "International buyers",
+   "text": "Customers shop from several countries, so the store has to handle several currencies."
+  },
+  {
+   "label": "Large catalogue",
+   "text": "Jewellery, bags, footwear and gift boxes each need their own collections."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Collections",
+   "Product page",
+   "Cart",
+   "Stripe / PayPal",
+   "Order"
+  ],
+  "caption": "Browse a collection, open a product, add it to the cart and pay with Stripe or PayPal."
+ },
+ "sections": [
+  {
+   "heading": "What the store offers",
+   "paras": [
+    "Collections for bridal sets, bangles, earrings, tikka, potli and beaded bags, clutches, bridal and kids' footwear and keepsake boxes, plus new-in and clearance sections, a size guide, a blog and shipping, refund and policy pages."
+   ]
+  }
+ ],
+ "challenges": [],
+ "outcome": [
+  "I delivered a working store with Stripe and PayPal checkout. The live site has since moved to Shopify."
+ ],
+ "stack": [
+  "PHP",
+  "MySQL",
+  "Stripe",
+  "PayPal"
+ ],
+ "image": "/work/dulhansdiary.jpg"
+}

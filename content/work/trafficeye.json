@@ -1,0 +1,115 @@
+{
+ "slug": "trafficeye",
+ "name": "TrafficEye",
+ "kind": "ai",
+ "order": 4,
+ "featured": true,
+ "image": "/work/trafficeye.jpg",
+ "title": "Traffic violation detection that leaves the final call to an officer",
+ "category": "Traffic enforcement · Tracking · Plate reading",
+ "year": "2026",
+ "client": "Personal project",
+ "role": "Solo build: models, backend and control-room UI",
+ "summary": "Detects riders without helmets, red-light jumping and triple riding from a camera, video or photo, reads number plates, and saves evidence that an officer reviews before a printable e-challan is issued.",
+ "metrics": [
+  {
+   "value": "3",
+   "label": "violation types: no helmet, red-light jump, triple riding"
+  },
+  {
+   "value": "3",
+   "label": "models: YOLO11s road users, YOLO26-L helmets, open-lpr plates"
+  },
+  {
+   "value": "2",
+   "label": "frames of the same tracked bike before a helmet or triple-riding ticket"
+  },
+  {
+   "value": "80 px",
+   "label": "minimum vehicle width before its plate is read"
+  }
+ ],
+ "problem": [
+  "Manual enforcement catches a small share of helmet, red-light and overloading offences, and handwritten tickets are hard to back up with evidence.",
+  "A system that issues fines on its own is only as good as its worst false positive. A wrong ticket for a law-abiding rider costs more than a missed one, so every detection has to be reviewable."
+ ],
+ "constraints": [
+  {
+   "label": "CPU only",
+   "text": "It runs without a GPU, so each frame gets at most 2 plate reads and helmet checks on at most 6 motorcyclists, largest first."
+  },
+  {
+   "label": "Fixed camera",
+   "text": "Red-light detection needs a stop line drawn once per camera; a single photo can't show a vehicle crossing it."
+  },
+  {
+   "label": "Distance",
+   "text": "Riders under 60 px tall are too far away to judge, and small plates are enlarged 2× before reading."
+  },
+  {
+   "label": "Safe models",
+   "text": "The helmet model is loaded as ONNX on purpose: unlike a .pt file, it can't run code when it's loaded."
+  }
+ ],
+ "architecture": {
+  "steps": [
+   "Camera / video",
+   "YOLO11s + lights",
+   "IoU tracking",
+   "Helmet + riders",
+   "Rules + plate OCR",
+   "Review + challan"
+  ],
+  "caption": "YOLO11s finds road users and traffic lights. Bikes are joined with their riders and checked by a traffic helmet model, IoU tracks feed per-vehicle violation rules, and open-lpr reads plates for evidence."
+ },
+ "sections": [
+  {
+   "heading": "Red-light jumping without tickets for cars waiting at the line",
+   "paras": [
+    "A vehicle's front (the bottom-centre of its box) is tracked against the camera's stop line, using signed distance and the approach direction. A ticket needs the vehicle to be clearly before the line, then clearly past it, within the line's span, while the signal is red.",
+    "Vehicles waiting on the line jitter across it by a pixel or two, so I added hysteresis: a side only counts once the vehicle is past it by 2% of the frame or 15% of its own height. Boxes cut off by the frame edge are ignored, and each vehicle can be ticketed once per violation type."
+   ]
+  },
+  {
+   "heading": "Reading the signal colour from pixels",
+   "paras": [
+    "The light's state comes from counting bright, saturated pixels in the red, green and yellow hue bands of its box. A lit lamp covers a few percent of the head; less than 1.5% is treated as reflection.",
+    "Many signal heads are painted yellow, so a box that's more than 25% amber is treated as housing, not a lit lamp. The result is a majority vote over the last 3 readings, so one blurry frame can't flip red to green, and an operator can override it by hand."
+   ]
+  }
+ ],
+ "challenges": [
+  {
+   "title": "Construction hard-hat models failed on motorcyclists",
+   "text": "The helmet models I had from SiteSentinel were trained on building sites, not traffic. I compared three models on 2,190 traffic photos and chose a YOLO26-L traffic helmet model at confidence 0.5 because it produced the fewest wrong tickets. Every detection still waits in a review queue."
+  },
+  {
+   "title": "Plates unreadable at the moment of the violation",
+   "text": "Every vehicle's plate is read from 80 px wide onwards and re-read as it gets closer, keeping the best read until one reaches 0.85 confidence. A violation reuses that earlier read, falls back to OCR on the helmet model's plate box, or is recorded as NOT READ for the officer to type in."
+  },
+  {
+   "title": "Counting riders on a bike",
+   "text": "A person counts as a rider when the lower half of their box overlaps the motorcycle by at least 30%, confirmed by heads from the helmet model, so a pedestrian standing beside the bike isn't counted towards triple riding."
+  }
+ ],
+ "outcome": [
+  "TrafficEye takes a webcam, uploaded video (sampled at 5 frames per second) or photos, tracks vehicles, and records each violation with an annotated, time-stamped frame, a close-up and a plate crop.",
+  "Officers work through a review queue, correct the plate if needed and issue a printable e-challan or reject the detection. Payments are tracked, and an Offenders view groups violations by plate to show repeat offenders and unpaid fines."
+ ],
+ "stack": [
+  "Python",
+  "Flask",
+  "YOLO11s",
+  "YOLO26-L (ONNX)",
+  "open-lpr",
+  "PP-OCRv5",
+  "ONNX Runtime",
+  "OpenCV",
+  "SQLite",
+  "pytest",
+  "React",
+  "TypeScript",
+  "Tailwind",
+  "shadcn/ui"
+ ]
+}
